@@ -1,7 +1,4 @@
-"""A programmatic solution to fivesquared, a puzzle from Israel.
-
-www.thinkingames.com
-
+"""
 First, this program ignores the symbols and treats the pieces as blank shapes.
 It finds all permutations of the valid placements of these pieces, then once
 it has that significantly-smaller dataset, it brute forces the actual symbol
