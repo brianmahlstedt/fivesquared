@@ -1,12 +1,17 @@
-## Description
+# Description
 
 This script solves Ili Kaufman's [5 Squared puzzle](http://thinkingames.com/WorkPages/ProductSingle.aspx?pID=5) from ThinkinGames.
 
-It takes XXXXXX MINUTES TO RUN ON MY i5 LAPTOP
+It is about 350 lines and takes about 15 seconds to run on an i5, unoptimized.
 
----
+# Solutions
 
-## Argorithm Selection
+![solution 1](1.jpg "Solution 1")
+![solution 2](2.jpg "Solution 2")
+![solution 3](3.jpg "Solution 3")
+![solution 4](4.jpg "Solution 4")
+
+# Algorithm Selection
 
 ##### Always check the simple brute force first.
 
@@ -26,4 +31,8 @@ Ok but first, ignore the symbols. Let's simply check the permutations for shape 
 
 Well let's look at an anchoring strategy for the recursion. This will constrain it even further. No matter the state of the grid, every piece can be considered to have an anchor: its upper-left-most cell. So every grid has 9 anchors. From each anchor, there are only 4 options: 3x1 horizontally, 3x1 vertically, 2x1 horizontally, 2x1 vertically. So we can iterate through each of these permutations, `4^9` = 262,000. Starting in the upper left origin, walk all of these paths with 4 branches at each anchor. This should yield 4x duplicate solutions as well for 90deg rotations, so we expect ~65,000 total iterations to find N from above, N, being a much smaller number because a small percentage of the anchor permutations fit all 9 pieces on the grid.
 
-There ended up being 164 permutations of shape placements, counting all rotations, which means that N = 41.
+There ended up being 164 permutations of shape placements, counting all rotations, which means that N = 41. The calculation of this, the first portion, only takes ~100ms on my i5.
+
+The first attempt at part 2, recursively placing all permutations of the 9 pieces for 5,160,000 options without fail-fast, railed my laptop at 100% cpu for 4 minutes, growing the stack to about 85% of my 4GB of RAM then using the majority of 8GB swap as well. The calculation was not done after 20min, for a single grid of the N=41, so I killed it and proceeded with the validity check after each placement.
+
+Properly failing fast on part two's recursion yields 32 solutions in ~16s on my i5. This is from N = 164, so we haven't respected rotation yet. The stack is negligible in mem. Once all 32 solutions are known, we could write a programmatic deduplication of the rotation/mirror equivalents, but 32 is small enough to do by hand.
