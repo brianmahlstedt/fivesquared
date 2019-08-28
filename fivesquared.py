@@ -1,25 +1,123 @@
+"""
+This program is divided into two parts. The first ignores the symbols
+and treats the pieces as blank shapes. It finds all permutations of the
+valid placements of these pieces, then once it has that
+significantly-smaller dataset, it brute forces the actual symbol
+placement of the pieces into those constraints.
+
+Here is the entire state space, and order, of that recursion:
+
+-> piece: 1,2,3,4,5,6,7,8,9
+  -> anchor: upperest leftest
+    -> size: 3, 2
+      -> angle: horizontal, vertical
+
+The second part Blah blah FILL THIS IN
+"""
+from copy import deepcopy
+from pprint import pprint
+
+
+def place_shape(grid, anchor, size, angle, ident):
+    """Places a piece. This does not do any logical analysis, it is
+    simply told to place a piece.
+
+    Args:
+        grid (list of lists): current board
+        anchor (tuple of 2 ints): indexed from 1
+        size (int): 2 or 3
+        angle (str): horizontal or vertical
+        ident (int): identifier for piece
+
+    Returns:
+        (list of lists): grid
+
+    Raises:
+        ValueError if placement is on top of another piece
+        IndexError if placement is off the board
+    """
+    row_anchor = anchor[0] - 1
+    col_anchor = anchor[1] - 1
+    new_grid = deepcopy(grid)
+    if angle == 'horizontal':
+        cells = [(row_anchor, col_anchor + shift) for shift in range(size)]
+    else:
+        cells = [(row_anchor + shift, col_anchor) for shift in range(size)]
+    for row, col in cells:
+        if new_grid[row][col] != 0:
+            raise ValueError('a piece is already taking that spot')
+        new_grid[row][col] = ident
+    return new_grid
+
+
+def find_new_anchor(grid):
+    """Finds the most upper-left cell in the current grid.
+
+    Args:
+        grid (list of lists): current board
+
+    Returns:
+        (tuple of 2 ints): anchor indexed from 1
+
+    Raises:
+        ValueError if grid is full
+    """
+    (x, y) = (0, 0)
+    for row, cols in enumerate(grid):
+        if 0 in cols:
+             y = cols.index(0) + 1
+             x = row + 1
+             break
+    if x == 0 and y == 0:
+        raise ValueError('grid is full')
+    return (x, y)
+
+
+def try_shape(grid, ident, remaining_pieces):
+    """The recursive portion. Walks down the placement of each piece,
+    checking validity and appending to a global array for acceptable
+    grid fillings. It does not consider directionality, since there
+    aren't that many. We can deduplicate during the symbol solution part.
+
+    Args:
+        grid (list of lists): current board
+        ident (int): identifier for piece
+        remainining_pieces (dict with keys 3 and 2): the number of
+            remaining pieces for each type, 3x1 and 2x1.
+    """
+    global grids
+    anchor = find_new_anchor(grid)
+    sizes = []
+    if remaining_pieces[3] != 0:
+        sizes.append(3)
+    if remaining_pieces[2] != 0:
+        sizes.append(2)
+    for size in sizes:
+        for angle in ['horizontal', 'vertical']:
+            try:
+                new_grid = place_shape(grid, anchor, size, angle, ident)
+                if ident == 9:
+                    grids.append(new_grid)
+                    pprint(new_grid)
+                new_remainders = remaining_pieces.copy()
+                new_remainders[size] -= 1
+                try_shape(new_grid, ident + 1, new_remainders)
+            except (ValueError, IndexError):
+                continue
+
+
+def main():
+    global grids; grids = []
+    initial_conditions = {
+        'grid': [[0 for x in range(5)] for y in range(5)],
+        'ident': 1,
+        'remaining_pieces': {3: 7, 2: 2},
+    }
+    try_shape(**initial_conditions)
+
+
+
 '''
-00 01 02 03 04
-05 06 07 08 09
-10 11 12 13 14
-15 16 17 18 19
-20 21 22 23 24
-
-Place one first. Place the next and so on. Recurse down, trying every configuration.
-
-Every piece has 4 configurations. Horizontal, vertical, forward, backward.
-Try them in this order:
-* horizontal forward
-* horizontal backward
-* vertical forward
-* vertical backward
-
-Then move onto the next anchor position, following incremental order in the above grid. This
-moves like a book, originating at the upper left then favoring right then down.
-
-Vertical positioning is the same anchor for that piece, but then instead of +1 for each next
-square, it's +5.
-
 There are 9 pieces, mapped numerically as follows:
 * 1 = six pointed star
 * 2 = five pointed star
@@ -28,12 +126,7 @@ There are 9 pieces, mapped numerically as follows:
 * 5 = circle
 
 0 means that the slot hasn't been filled yet.
-
-Fail fast if any configuration violates, ignoring the rest of the piece placement.
 '''
-
-initial_grid = 0*25
-
 pieces = (
     (1, 2, 3),
     (5, 3, 1),
@@ -45,11 +138,6 @@ pieces = (
     (4, 1),
     (4, 5),
 )
-
-angles = ['horizontal', 'vertical']
-flips = [False, True]
-orientations = itertools.product(angles, flips)
-
 
 def check_grid(grid):
     """Given a 5x5 grid, returns a bool if any rows or columns violate (False = fail).
@@ -70,37 +158,3 @@ def check_grid(grid):
         if len(array) != len(set(array)):
             return False
     return True
-
-
-def place_piece(grid, piece, origin, angle, flip):
-    """
-    Args:
-        grid (list) = current 5x5 matrix
-        piece (tuple) = piece to place
-        angle (str) = 'horizontal' or 'vertical'
-        flip (bool) = reversed numbers on piece if true
-    """
-    position = origin
-    increment = 1 if angle == 'horizontal' else 5
-    if flip is True:
-        piece = piece[::-1]
-    for number in piece:
-        grid[position] = number
-        position += increment
-    return grid
-
-
-def recurse_moves(grid):
-    for piece in pieces:
-        upperest_leftest = grid.index(0)
-        for orientation in orientations:
-            old_grid = grid
-            new_grid = place_piece(grid, piece, upperest_leftest, *orientation)
-            if check_grid(new_grid):
-                # place next piece
-            else:
-
-
-
-def main():
-    recurse_moves(initial_grid)

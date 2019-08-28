@@ -6,7 +6,7 @@ It takes XXXXXX MINUTES TO RUN ON MY i5 LAPTOP
 
 ---
 
-## Process:
+## Argorithm Selection
 
 ##### Always check the simple brute force first.
 
@@ -22,6 +22,8 @@ In reality, there are many fewer because as each piece is placed, it increasingl
 
 ##### Sounds like we should do a recursive piece-placing strategy, failing fast if any configuration fails?
 
-Ok but first, ignore the symbols. Let's simply check the permutations for shape placement. Once we have this number N, we can probably brute force. For each shape-constrained grid, we'll have `14*12*10*8*6*4*2*4*2` options, or 5,160,000. The number N shouldn't be too high, there are only so many ways to organize items of length 3 in a 5x5 grid. And remember, you can divide N by 4 before brute forcing because some of them will be rotated equivalents of others.
+Ok but first, ignore the symbols. Let's simply check the permutations for shape placement. Once we have this number N, we can probably brute force. For each shape-constrained grid, we'll have `14*12*10*8*6*4*2*4*2` options, or 5,160,000. The number N shouldn't be too high, there are only so many ways to organize items of length 3 in a 5x5 grid.
 
 Well let's look at an anchoring strategy for the recursion. This will constrain it even further. No matter the state of the grid, every piece can be considered to have an anchor: its upper-left-most cell. So every grid has 9 anchors. From each anchor, there are only 4 options: 3x1 horizontally, 3x1 vertically, 2x1 horizontally, 2x1 vertically. So we can iterate through each of these permutations, `4^9` = 262,000. Starting in the upper left origin, walk all of these paths with 4 branches at each anchor. This should yield 4x duplicate solutions as well for 90deg rotations, so we expect ~65,000 total iterations to find N from above, N, being a much smaller number because a small percentage of the anchor permutations fit all 9 pieces on the grid.
+
+There ended up being 164 permutations of shape placements, counting all rotations, which means that N = 41.
